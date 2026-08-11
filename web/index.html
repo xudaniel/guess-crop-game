@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guess the Crop</title>
+  <style>
+    :root {
+      --bg: #0b0610;
+      --bg2: #160b1c;
+      --panel: rgba(28, 12, 32, 0.92);
+      --pink: #ff4d8d;
+      --pink2: #ff7ab5;
+      --gold: #ffc857;
+      --text: #f8e9f1;
+      --muted: #b08aa0;
+      --ok: #3dffa8;
+      --bad: #ff5c7a;
+      --border: rgba(255, 77, 141, 0.28);
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+      --radius: 18px;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(255, 77, 141, 0.18), transparent 50%),
+        radial-gradient(900px 500px at 100% 0%, rgba(140, 40, 180, 0.2), transparent 45%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      color: var(--text);
+    }
+
+    body {
+      padding: 24px 16px 48px;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      letter-spacing: 0.02em;
+      background: linear-gradient(90deg, #fff, var(--pink2), var(--gold));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .tagline {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .scoreboard {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 10px 14px;
+      min-width: 88px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .pill b {
+      display: block;
+      font-size: 1.25rem;
+      color: var(--pink2);
+    }
+
+    .pill b.warn { color: var(--bad); }
+    .pill b.rush { color: var(--gold); }
+
+    .pill span {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .timer-track {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+      margin: 10px 0 0;
+      border: 1px solid var(--border);
+    }
+
+    .timer-track > i {
+      display: block;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--pink));
+      transform-origin: left center;
+      transition: none;
+    }
+
+    .timer-track.urgent > i {
+      background: linear-gradient(90deg, #ff5c7a, #ff0040);
+    }
+
+    .timer-track.hidden { display: none; }
+
+    .toggles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .toggles label {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .toggles input { accent-color: var(--pink); }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .setup h2, .play h2 {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+      color: var(--pink2);
+    }
+
+    .folders {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .folders label {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      font-size: 0.92rem;
+    }
+
+    .folders label:hover { border-color: var(--pink); }
+    .folders input { accent-color: var(--pink); }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    label.field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    select, input[type="number"] {
+      background: #1a0f22;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      min-width: 160px;
+      font-size: 0.95rem;
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: transform 0.12s ease, filter 0.12s ease, opacity 0.12s ease;
+    }
+
+    button:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--pink), #a118ff);
+      color: white;
+      box-shadow: 0 8px 24px rgba(255, 77, 141, 0.35);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #ffb703, #fb8500);
+      color: #1a0a10;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 0.9rem;
+      min-height: 1.2em;
+    }
+
+    .status.err { color: var(--bad); }
+    .status.ok { color: var(--ok); }
+
+    .hidden { display: none !important; }
+
+    .arena {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 860px) {
+      .arena { grid-template-columns: 1fr; }
+    }
+
+    .crop-wrap {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #000;
+      min-height: 360px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #cropCanvas {
+      width: 100%;
+      height: auto;
+      max-height: 520px;
+      display: block;
+      object-fit: contain;
+    }
+
+    .crop-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid var(--border);
+      color: var(--gold);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+
+    .prompt {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .opt {
+      position: relative;
+      border: 2px solid transparent;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #100814;
+      cursor: pointer;
+      padding: 0;
+      aspect-ratio: 3 / 4;
+    }
+
+    .opt img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.25s ease;
+    }
+
+    .opt:hover img { transform: scale(1.04); }
+
+    .opt.correct { border-color: var(--ok); box-shadow: 0 0 0 2px rgba(61, 255, 168, 0.35); }
+    .opt.wrong { border-color: var(--bad); opacity: 0.72; }
+    .opt.dim { opacity: 0.4; }
+
+    .opt .mark {
+      position: absolute;
+      inset: auto 8px 8px auto;
+      background: rgba(0,0,0,0.7);
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .reveal {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      font-size: 0.9rem;
+      min-height: 48px;
+    }
+
+    .reveal strong { color: var(--text); }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .heat {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .heat > i {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--pink), var(--gold));
+      transition: width 0.35s ease;
+    }
+
+    footer {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    kbd {
+      background: #2a1630;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 6px;
+      font-size: 0.85em;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Guess the Crop</h1>
+        <p class="tagline">Photo crop quiz — which full image does this crop come from?</p>
+      </div>
+      <div class="scoreboard">
+        <div class="pill"><b id="score">0</b><span>Score</span></div>
+        <div class="pill"><b id="streak">0</b><span>Streak</span></div>
+        <div class="pill"><b id="round">0</b><span>Round</span></div>
+        <div class="pill"><b id="best">0</b><span>Best streak</span></div>
+        <div class="pill" id="livesPill"><b id="lives">—</b><span>Lives</span></div>
+        <div class="pill" id="timerPill"><b id="timerLeft" class="rush">—</b><span>Timer</span></div>
+      </div>
+    </header>
+
+    <section class="panel setup" id="setup">
+      <h2>Load your local deck</h2>
+      <div class="folders" id="folderList">
+        <div class="status">Loading folders…</div>
+      </div>
+      <div class="row">
+        <label class="field">Mode
+          <select id="mode">
+            <option value="face">Face → full body</option>
+            <option value="body">Body → full (mid / lower crop)</option>
+            <option value="detail" selected>Detail → photo (tight random crop)</option>
+            <option value="chaos">Chaos (mix all crop styles)</option>
+          </select>
+        </label>
+        <label class="field">Pool size
+          <input id="limit" type="number" min="40" max="1500" value="300" />
+        </label>
+        <label class="field">Difficulty
+          <select id="difficulty">
+            <option value="easy">Easy — larger crop</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Hard — small crop</option>
+            <option value="extreme">Extreme — tiny crop</option>
+          </select>
+        </label>
+      </div>
+      <div class="toggles">
+        <label title="All 4 options come from the same library folder when possible">
+          <input type="checkbox" id="sameFolder" checked />
+          Same-folder distractors (harder)
+        </label>
+      </div>
+      <div class="row">
+        <label class="field">Rush mode
+          <select id="rushMode">
+            <option value="off" selected>Off — no timer</option>
+            <option value="3">Rush 3.0s</option>
+            <option value="2">Rush 2.0s</option>
+            <option value="1.5">Panic 1.5s</option>
+          </select>
+        </label>
+        <label class="field">Lives (rush)
+          <select id="livesSelect">
+            <option value="3" selected>3 lives</option>
+            <option value="5">5 lives</option>
+            <option value="1">1 life (sudden death)</option>
+            <option value="0">∞ infinite</option>
+          </select>
+        </label>
+        <label class="field">Speed bonus
+          <select id="speedBonus">
+            <option value="on" selected>On — fast answers score more</option>
+            <option value="off">Off</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <button class="btn-primary" id="btnStart">Start game</button>
+        <button class="btn-ghost" id="btnReload">Reload folders</button>
+      </div>
+      <p class="status" id="setupStatus">Serve with <code>./scripts/start.sh</code> then open this page.</p>
+    </section>
+
+    <section class="panel play hidden" id="play">
+      <div class="arena">
+        <div>
+          <div class="crop-wrap">
+            <span class="crop-badge" id="cropLabel">Crop</span>
+            <canvas id="cropCanvas" width="640" height="640"></canvas>
+          </div>
+          <div class="timer-track hidden" id="timerTrack"><i id="timerBar"></i></div>
+          <div class="heat"><i id="heatBar"></i></div>
+        </div>
+        <div>
+          <p class="prompt" id="prompt">Which picture does this crop come from?</p>
+          <div class="options" id="options"></div>
+          <div class="reveal" id="reveal">Pick one of the four…</div>
+          <div class="actions">
+            <button class="btn-gold hidden" id="btnNext">Next round →</button>
+            <button class="btn-ghost" id="btnSkip">Skip</button>
+            <button class="btn-ghost" id="btnSetup">Settings</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Local only · SFW photo quiz · same-folder + rush · keys <kbd>1</kbd>–<kbd>4</kbd> choose · <kbd>N</kbd> / <kbd>Space</kbd> next · <kbd>S</kbd> skip
+    </footer>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const state = {
+      images: [],
+      score: 0,
+      streak: 0,
+      best: Number(localStorage.getItem("gtc_best") || 0),
+      round: 0,
+      answered: false,
+      current: null,
+      // settings snapshot for the run
+      sameFolder: true,
+      rushSeconds: 0,
+      livesMax: 0,
+      lives: 0,
+      speedBonus: true,
+      // timer runtime
+      timerRaf: 0,
+      timerStartedAt: 0,
+      timerEndsAt: 0,
+      gameOver: false,
+    };
+
+    $("best").textContent = state.best;
+
+    async function fetchJSON(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      return res.json();
+    }
+
+    function imgUrl(id) {
+      return `/img/${encodeURI(id).replace(/#/g, "%23")}`;
+    }
+
+    function clearTimer() {
+      if (state.timerRaf) {
+        cancelAnimationFrame(state.timerRaf);
+        state.timerRaf = 0;
+      }
+      state.timerStartedAt = 0;
+      state.timerEndsAt = 0;
+      $("timerBar").style.transform = "scaleX(1)";
+      $("timerTrack").classList.remove("urgent");
+      $("timerLeft").textContent = state.rushSeconds ? state.rushSeconds.toFixed(1) : "—";
+      $("timerLeft").className = state.rushSeconds ? "rush" : "";
+    }
+
+    function startTimer() {
+      clearTimer();
+      if (!state.rushSeconds || state.gameOver) {
+        $("timerTrack").classList.add("hidden");
+        $("timerLeft").textContent = "—";
+        return;
+      }
+      $("timerTrack").classList.remove("hidden");
+      const total = state.rushSeconds * 1000;
+      state.timerStartedAt = performance.now();
+      state.timerEndsAt = state.timerStartedAt + total;
+
+      const tick = (now) => {
+        if (state.answered || state.gameOver) return;
+        const left = Math.max(0, state.timerEndsAt - now);
+        const frac = left / total;
+        $("timerBar").style.transform = `scaleX(${frac})`;
+        $("timerLeft").textContent = (left / 1000).toFixed(1);
+        $("timerLeft").className = left < 800 ? "warn" : "rush";
+        if (left < 800) $("timerTrack").classList.add("urgent");
+        else $("timerTrack").classList.remove("urgent");
+        if (left <= 0) {
+          onTimeout();
+          return;
+        }
+        state.timerRaf = requestAnimationFrame(tick);
+      };
+      state.timerRaf = requestAnimationFrame(tick);
+    }
+
+    function remainingRatio() {
+      if (!state.rushSeconds || !state.timerEndsAt) return 1;
+      const left = Math.max(0, state.timerEndsAt - performance.now());
+      return left / (state.rushSeconds * 1000);
+    }
+
+    async function loadFolders() {
+      const box = $("folderList");
+      $("setupStatus").textContent = "Loading…";
+      try {
+        const data = await fetchJSON("/api/folders");
+        box.innerHTML = "";
+        if (!data.folders.length) {
+          box.innerHTML = `<div class="status err">No known folders under ${data.root}</div>`;
+          return;
+        }
+        data.folders.forEach((f, i) => {
+          const id = `folder_${f}`;
+          const label = document.createElement("label");
+          const checked = i < 3 ? "checked" : "";
+          label.innerHTML = `<input type="checkbox" id="${id}" value="${f}" ${checked} /> ${f}`;
+          box.appendChild(label);
+        });
+        $("setupStatus").textContent = `Root: ${data.root}`;
+        $("setupStatus").className = "status ok";
+      } catch (e) {
+        box.innerHTML = "";
+        $("setupStatus").textContent = "Server not running. In Terminal: ./scripts/start.sh";
+        $("setupStatus").className = "status err";
+      }
+    }
+
+    function selectedFolders() {
+      return [...document.querySelectorAll("#folderList input:checked")].map((el) => el.value);
+    }
+
+    async function startGame() {
+      const folders = selectedFolders();
+      if (!folders.length) {
+        $("setupStatus").textContent = "Pick at least one folder.";
+        $("setupStatus").className = "status err";
+        return;
+      }
+      const limit = Number($("limit").value) || 300;
+      $("setupStatus").textContent = "Building deck…";
+      $("btnStart").disabled = true;
+      try {
+        const q = new URLSearchParams({
+          folders: folders.join(","),
+          limit: String(limit),
+        });
+        const data = await fetchJSON(`/api/images?${q}`);
+        if (data.count < 4) {
+          throw new Error(`Need at least 4 images (got ${data.count}). Pick more folders or raise pool size.`);
+        }
+
+        const rushRaw = $("rushMode").value;
+        state.sameFolder = $("sameFolder").checked;
+        state.rushSeconds = rushRaw === "off" ? 0 : Number(rushRaw);
+        state.livesMax = Number($("livesSelect").value);
+        state.lives = state.livesMax;
+        state.speedBonus = $("speedBonus").value === "on";
+        state.images = data.images;
+        state.score = 0;
+        state.streak = 0;
+        state.round = 0;
+        state.answered = false;
+        state.gameOver = false;
+        state.current = null;
+        clearTimer();
+        updateScoreboard();
+        $("setup").classList.add("hidden");
+        $("play").classList.remove("hidden");
+        const bits = [`Loaded ${data.count} images`];
+        if (state.sameFolder) bits.push("same-folder ON");
+        if (state.rushSeconds) bits.push(`rush ${state.rushSeconds}s`);
+        $("setupStatus").textContent = bits.join(" · ");
+        $("setupStatus").className = "status ok";
+        await nextRound();
+      } catch (e) {
+        $("setupStatus").textContent = e.message || String(e);
+        $("setupStatus").className = "status err";
+      } finally {
+        $("btnStart").disabled = false;
+      }
+    }
+
+    function updateScoreboard() {
+      $("score").textContent = state.score;
+      $("streak").textContent = state.streak;
+      $("round").textContent = state.round;
+      $("best").textContent = state.best;
+      if (state.livesMax > 0) {
+        $("lives").textContent = String(state.lives);
+        $("lives").className = state.lives <= 1 ? "warn" : "";
+      } else {
+        $("lives").textContent = "∞";
+        $("lives").className = "";
+      }
+      if (!state.rushSeconds) {
+        $("timerLeft").textContent = "—";
+        $("timerLeft").className = "";
+      }
+      const heat = Math.min(100, state.streak * 12);
+      $("heatBar").style.width = `${heat}%`;
+    }
+
+    function pickMode() {
+      const m = $("mode").value;
+      if (m === "chaos") {
+        return ["face", "body", "detail"][Math.floor(Math.random() * 3)];
+      }
+      return m;
+    }
+
+    function cropScale() {
+      const d = $("difficulty").value;
+      if (d === "easy") return 0.42;
+      if (d === "hard") return 0.18;
+      if (d === "extreme") return 0.11;
+      return 0.28;
+    }
+
+    function computeCrop(img, mode) {
+      const w = img.naturalWidth;
+      const h = img.naturalHeight;
+      const scale = cropScale();
+      let cw = Math.max(40, Math.floor(w * scale));
+      let ch = Math.max(40, Math.floor(h * scale));
+
+      if (mode === "face") {
+        ch = Math.floor(cw * 1.15);
+        if (ch > h * 0.5) ch = Math.floor(h * 0.5);
+      } else if (mode === "body") {
+        cw = Math.floor(ch * 0.85);
+      } else {
+        if (Math.random() < 0.5) cw = Math.floor(ch * (0.7 + Math.random() * 0.5));
+        else ch = Math.floor(cw * (0.7 + Math.random() * 0.5));
+      }
+      cw = Math.min(cw, w);
+      ch = Math.min(ch, h);
+
+      let x, y;
+      if (mode === "face") {
+        x = Math.floor((w - cw) * (0.15 + Math.random() * 0.7));
+        y = Math.floor(h * (0.02 + Math.random() * 0.18));
+      } else if (mode === "body") {
+        x = Math.floor((w - cw) * (0.1 + Math.random() * 0.8));
+        y = Math.floor(h * (0.35 + Math.random() * 0.4));
+      } else {
+        x = Math.floor(Math.random() * (w - cw));
+        y = Math.floor(Math.random() * (h - ch));
+      }
+      x = Math.max(0, Math.min(x, w - cw));
+      y = Math.max(0, Math.min(y, h - ch));
+      return { x, y, w: cw, h: ch, mode };
+    }
+
+    function loadImage(url) {
+      return new Promise((resolve, reject) => {
+        const im = new Image();
+        im.onload = () => resolve(im);
+        im.onerror = () => reject(new Error("Failed to load image"));
+        im.src = url;
+      });
+    }
+
+    function drawCrop(img, crop) {
+      const canvas = $("cropCanvas");
+      const maxSide = 720;
+      const aspect = crop.w / crop.h;
+      let dw, dh;
+      if (aspect >= 1) {
+        dw = maxSide;
+        dh = Math.round(maxSide / aspect);
+      } else {
+        dh = maxSide;
+        dw = Math.round(maxSide * aspect);
+      }
+      canvas.width = dw;
+      canvas.height = dh;
+      const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, dw, dh);
+      ctx.drawImage(img, crop.x, crop.y, crop.w, crop.h, 0, 0, dw, dh);
+
+      const g = ctx.createRadialGradient(dw / 2, dh / 2, Math.min(dw, dh) * 0.25, dw / 2, dh / 2, Math.max(dw, dh) * 0.7);
+      g.addColorStop(0, "rgba(0,0,0,0)");
+      g.addColorStop(1, "rgba(0,0,0,0.45)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, dw, dh);
+    }
+
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    /** Match key for same-folder mode: top folder, or star subfolder when present. */
+    function similarityKey(img) {
+      const parts = img.id.split("/");
+      // Prefer nested pack key when structure is library/pack/item/...
+      if (parts.length >= 3) {
+        return parts.slice(0, 2).join("/");
+      }
+      return img.folder || parts[0];
+    }
+
+    function pickDistractors(correct) {
+      const others = state.images.filter((x) => x.id !== correct.id);
+      if (!state.sameFolder) {
+        return shuffle(others).slice(0, 3);
+      }
+      const key = similarityKey(correct);
+      const same = shuffle(others.filter((x) => similarityKey(x) === key));
+      const rest = shuffle(others.filter((x) => similarityKey(x) !== key));
+      const picked = same.slice(0, 3);
+      // fallback fill if folder too thin
+      for (const x of rest) {
+        if (picked.length >= 3) break;
+        picked.push(x);
+      }
+      return picked.slice(0, 3);
+    }
+
+    function highlightAnswer(wrongBtn) {
+      document.querySelectorAll(".opt").forEach((b) => {
+        const isCorrect = b.dataset.id === state.current.correct.id;
+        if (isCorrect) b.classList.add("correct");
+        else if (wrongBtn && b === wrongBtn) b.classList.add("wrong");
+        else b.classList.add("dim");
+      });
+    }
+
+    function loseLife(reasonHtml) {
+      if (state.livesMax > 0) {
+        state.lives = Math.max(0, state.lives - 1);
+      }
+      state.streak = 0;
+      updateScoreboard();
+      if (state.livesMax > 0 && state.lives <= 0) {
+        state.gameOver = true;
+        $("reveal").innerHTML =
+          reasonHtml +
+          `<br/><strong style="color:var(--bad)">Game over.</strong> Score ${state.score}. Hit Settings to run again.`;
+        $("btnNext").classList.add("hidden");
+        return true;
+      }
+      return false;
+    }
+
+    function endRoundUI() {
+      clearTimer();
+      if (!state.gameOver) {
+        $("btnNext").classList.remove("hidden");
+        $("btnNext").focus();
+      }
+    }
+
+    async function nextRound() {
+      if (state.gameOver) return;
+      clearTimer();
+      state.answered = false;
+      $("btnNext").classList.add("hidden");
+      $("reveal").textContent = "Pick one of the four…";
+      $("options").innerHTML = `<div class="status">Loading round…</div>`;
+
+      const mode = pickMode();
+      const labels = {
+        face: "Face crop",
+        body: "Mid-frame crop",
+        detail: "Detail crop",
+      };
+      $("cropLabel").textContent = labels[mode] || "Crop";
+      $("prompt").textContent =
+        mode === "face"
+          ? "Whose photo is this? Pick the full image."
+          : mode === "body"
+            ? "Which full image does this mid-frame crop belong to?"
+            : "Which full image does this detail crop come from?";
+
+      let correct = null;
+      let img = null;
+      let crop = null;
+      for (let attempt = 0; attempt < 12; attempt++) {
+        // prefer keys with enough siblings when same-folder is on
+        let candidate = state.images[Math.floor(Math.random() * state.images.length)];
+        if (state.sameFolder) {
+          const byKey = {};
+          for (const im of state.images) {
+            const k = similarityKey(im);
+            (byKey[k] ||= []).push(im);
+          }
+          const rich = Object.values(byKey).filter((arr) => arr.length >= 4);
+          if (rich.length) {
+            const bucket = rich[Math.floor(Math.random() * rich.length)];
+            candidate = bucket[Math.floor(Math.random() * bucket.length)];
+          }
+        }
+        correct = candidate;
+        try {
+          img = await loadImage(imgUrl(correct.id));
+          if (img.naturalWidth < 80 || img.naturalHeight < 80) continue;
+          crop = computeCrop(img, mode);
+          break;
+        } catch {
+          img = null;
+        }
+      }
+      if (!img || !crop) {
+        $("options").innerHTML = `<div class="status err">Could not load images. Try other folders.</div>`;
+        return;
+      }
+
+      drawCrop(img, crop);
+
+      const distractors = pickDistractors(correct);
+      if (distractors.length < 3) {
+        $("options").innerHTML = `<div class="status err">Not enough unique images for options. Raise pool size or uncheck same-folder.</div>`;
+        return;
+      }
+      const options = shuffle([correct, ...distractors]);
+      const usedSame =
+        state.sameFolder &&
+        distractors.filter((d) => similarityKey(d) === similarityKey(correct)).length >= 3;
+      state.current = {
+        correct,
+        options,
+        mode,
+        crop,
+        usedSame,
+        startedAt: performance.now(),
+      };
+      state.round += 1;
+      updateScoreboard();
+
+      const box = $("options");
+      box.innerHTML = "";
+      options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "opt";
+        btn.type = "button";
+        btn.dataset.id = opt.id;
+        btn.dataset.idx = String(idx);
+        btn.innerHTML = `<img alt="option ${idx + 1}" src="${imgUrl(opt.id)}" loading="eager" /><span class="mark">${idx + 1}</span>`;
+        btn.addEventListener("click", () => choose(opt.id, btn));
+        box.appendChild(btn);
+      });
+
+      const folderHint = usedSame
+        ? ` · pack: ${similarityKey(correct)}`
+        : state.sameFolder
+          ? " · mixed (thin folder)"
+          : "";
+      $("reveal").textContent = `Pick one of the four…${folderHint}`;
+      startTimer();
+    }
+
+    function choose(id, btnEl) {
+      if (state.answered || !state.current || state.gameOver) return;
+      state.answered = true;
+      clearTimer();
+      const ok = id === state.current.correct.id;
+      highlightAnswer(ok ? null : btnEl);
+
+      if (ok) {
+        let bonus = 1 + Math.floor(state.streak / 3);
+        let speedExtra = 0;
+        if (state.speedBonus) {
+          const ratio = state.rushSeconds ? remainingRatio() : 1;
+          // faster = more bonus; without rush, mild bonus for <2s answers
+          if (state.rushSeconds) {
+            if (ratio >= 0.66) speedExtra = 2;
+            else if (ratio >= 0.33) speedExtra = 1;
+          } else {
+            const elapsed = (performance.now() - state.current.startedAt) / 1000;
+            if (elapsed <= 1.5) speedExtra = 2;
+            else if (elapsed <= 3) speedExtra = 1;
+          }
+          bonus += speedExtra;
+        }
+        state.score += bonus;
+        state.streak += 1;
+        if (state.streak > state.best) {
+          state.best = state.streak;
+          localStorage.setItem("gtc_best", String(state.best));
+        }
+        const speedNote = speedExtra ? ` · speed +${speedExtra}` : "";
+        $("reveal").innerHTML = `<strong style="color:var(--ok)">Correct.</strong> +${bonus}${speedNote} · streak ${state.streak}<br/><span style="color:var(--muted)">${state.current.correct.name}</span>`;
+        updateScoreboard();
+        endRoundUI();
+      } else {
+        const over = loseLife(
+          `<strong style="color:var(--bad)">Wrong.</strong> Answer has the green border.<br/><span style="color:var(--muted)">${state.current.correct.name}</span>`
+        );
+        if (!over) {
+          $("reveal").innerHTML = `<strong style="color:var(--bad)">Wrong.</strong> Answer has the green border.${
+            state.livesMax > 0 ? ` · lives ${state.lives}` : ""
+          }<br/><span style="color:var(--muted)">${state.current.correct.name}</span>`;
+          endRoundUI();
+        }
+      }
+    }
+
+    function onTimeout() {
+      if (state.answered || !state.current || state.gameOver) return;
+      state.answered = true;
+      highlightAnswer(null);
+      const over = loseLife(
+        `<strong style="color:var(--bad)">Time's up.</strong> Too slow.<br/><span style="color:var(--muted)">${state.current.correct.name}</span>`
+      );
+      if (!over) {
+        $("reveal").innerHTML = `<strong style="color:var(--bad)">Time's up.</strong>${
+          state.livesMax > 0 ? ` · lives ${state.lives}` : ""
+        }<br/><span style="color:var(--muted)">${state.current.correct.name}</span>`;
+        endRoundUI();
+      } else {
+        clearTimer();
+      }
+    }
+
+    function skipRound() {
+      if (!state.current || state.gameOver) return;
+      if (!state.answered) {
+        state.answered = true;
+        clearTimer();
+        // skip costs a life in rush; otherwise just resets streak
+        const over = loseLife(
+          `<strong>Skipped.</strong> Answer highlighted.<br/><span style="color:var(--muted)">${state.current.correct.name}</span>`
+        );
+        highlightAnswer(null);
+        if (!over) {
+          $("reveal").innerHTML = `<strong>Skipped.</strong>${
+            state.livesMax > 0 ? ` · lives ${state.lives}` : ""
+          }<br/><span style="color:var(--muted)">${state.current.correct.name}</span>`;
+          endRoundUI();
+        }
+      } else if (!state.gameOver) {
+        nextRound();
+      }
+    }
+
+    // events
+    $("btnStart").addEventListener("click", startGame);
+    $("btnReload").addEventListener("click", loadFolders);
+    $("btnNext").addEventListener("click", () => nextRound());
+    $("btnSkip").addEventListener("click", skipRound);
+    $("btnSetup").addEventListener("click", () => {
+      clearTimer();
+      state.gameOver = false;
+      $("play").classList.add("hidden");
+      $("setup").classList.remove("hidden");
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if ($("play").classList.contains("hidden")) return;
+      if (e.key >= "1" && e.key <= "4") {
+        const btn = document.querySelector(`.opt[data-idx="${Number(e.key) - 1}"]`);
+        if (btn && !state.answered && !state.gameOver) btn.click();
+      } else if (e.key === "n" || e.key === "N" || e.key === " ") {
+        e.preventDefault();
+        if (state.answered && !state.gameOver) nextRound();
+      } else if (e.key === "s" || e.key === "S") {
+        skipRound();
+      }
+    });
+
+    loadFolders();
+  </script>
+</body>
+</html>
