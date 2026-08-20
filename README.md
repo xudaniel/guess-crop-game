@@ -5,6 +5,7 @@
 [![deps](https://img.shields.io/badge/dependencies-none_(stdlib)-success)](#requirements)
 [![sfw](https://img.shields.io/badge/content-SFW-brightgreen)](#content-policy)
 [![license](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+[![CI](https://github.com/xudaniel/guess-crop-game/actions/workflows/ci.yml/badge.svg)](https://github.com/xudaniel/guess-crop-game/actions/workflows/ci.yml)
 
 > **Photo crop quiz** for a local image library.  
 > See a cropped region → pick which full photo it came from (4 choices).
